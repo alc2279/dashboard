@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(viridis)
+library(p8105.datasets)
+library(plotly)
+```
+
+```{r}
+nyweather_data = 
+  ny_noaa %>%
+  filter(str_detect(id, c("USW00014733|USW00014735|USW00014768|USW00014771|USW00094789"))) %>%
+  mutate(
+  name = recode(id, USW00014733 = "NYC",
+                      USW00014735 = "Buffalo",
+                      USW00014768 = "Rochester",
+                      USW00014771 = "Syracuse",
+                      USW00094789 = "Albany"),
+         prcp = as.numeric(prcp), 
+         tmin = as.numeric(tmin),
+         tmax = as.numeric(tmax),
+         prcp = prcp / 10,
+         tmin = tmin / 10,
+         tmax = tmax / 10,
+         date2 = date) %>% 
+  separate(date2, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(month_name = month.name[as.numeric(month)]) %>% 
+  mutate(year = as.integer(year)) %>% 
+  ##filter(as.integer(year) > 1999) %>% 
+  select(name, id, everything())
+```
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+plot_ly(nyweather_data, y = ~tmax, color = ~month, type = "box",
+          colors = "Set2")
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+nyweather_data %>% 
+group_by(name, year) %>% 
+summarise(avg_annual_tmax = mean(tmax)) %>% 
+plot_ly(x = ~year, y = ~avg_annual_tmax, type = "scatter", mode = "lines",
+          alpha = 0.5, 
+          color = ~name)
+```
+
+### Chart C
+
+```{r}
+nyweather_data %>% 
+  mutate(year_month = paste(year, month, sep = "")) %>% 
+  group_by(year, year_month) %>% 
+  summarise(total_rainfall = sum(prcp, na.rm = TRUE)) %>% 
+  plot_ly(x = ~year_month, y = ~total_rainfall, type = "bar")
+```
+
