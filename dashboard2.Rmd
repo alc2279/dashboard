@@ -34,7 +34,7 @@ nyweather_data =
   separate(date2, into = c("year", "month", "day"), sep = "-") %>% 
   mutate(month_name = month.name[as.numeric(month)]) %>% 
   mutate(year = as.integer(year)) %>% 
-  filter(as.integer(year) > 1999) %>% 
+  filter(as.integer(year) == 1999) %>% 
   select(name, id, everything())
 ```
 
